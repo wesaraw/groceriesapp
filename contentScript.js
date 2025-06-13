@@ -2,15 +2,17 @@ console.log("✅ contentScript.js loaded on page:", window.location.href);
 
 function scrapeStopAndShop() {
   const products = [];
-  const tiles = document.querySelectorAll('li[class*="StyledProductCard"]');
+  const tiles = document.querySelectorAll('li.tile.product-cell.product-grid-cell');
   console.log(`🧱 Found ${tiles.length} product tiles`);
   tiles.forEach((tile, index) => {
     console.log(`🔍 Tile ${index + 1} innerHTML:`, tile.innerHTML);
-    const name = tile.querySelector('h3[class^="ProductName__StyledProductName"]')?.innerText?.trim();
+    const name = tile.querySelector('.product-grid-cell_price-container > .sr-only')?.innerText?.trim();
 
-    const priceText = tile.querySelector('span.sr-only')?.innerText?.trim();
+    const priceText = tile.querySelector('.product-grid-cell_main-price')?.innerText?.trim();
 
-    const perUnitText = tile.querySelector('span.PricePerUnit')?.innerText?.trim();
+    const unitSize = tile.querySelector('.product-grid-cell_size')?.innerText?.trim();
+
+    const perUnitText = tile.querySelector('.product-grid-cell_unit')?.innerText?.trim();
     const image = tile.querySelector('img')?.src || '';
 
     let unitQty = null;
@@ -25,15 +27,17 @@ function scrapeStopAndShop() {
     }
 
     if (name && priceText) {
-      console.log(`🧾 Tile ${index + 1}`, {
+      console.log(`🧾 Tile ${index + 1}:`, {
         name,
-        priceText,
-        perUnit: perUnitText,
+        price: priceText,
+        unitSize,
+        pricePerUnit: perUnitText,
         image
       });
       products.push({
         name,
         price: priceText,
+        size: unitSize || '',
         unit: perUnitText || '',
         unitQty,
         unitType,
