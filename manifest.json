@@ -14,7 +14,8 @@
   "content_scripts": [
     {
       "matches": ["https://stopandshop.com/*"],
-      "js": ["contentScript.js"]
+      "js": ["contentScript.js"],
+      "type": "module"
     }
   ]
 }
