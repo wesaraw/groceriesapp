@@ -99,17 +99,36 @@ async function init() {
     const div = document.createElement('div');
     div.className = 'store';
     const header = document.createElement('div');
-    const btn = document.createElement('button');
-    btn.textContent = entry.store;
-    btn.addEventListener('click', () => {
+    const openBtn = document.createElement('button');
+    openBtn.textContent = entry.store;
+    openBtn.addEventListener('click', () => {
       chrome.runtime.sendMessage({
         type: 'openStoreTab',
         url: entry.link,
         item: itemName,
         store: entry.store
+      }, response => {
+        const rec = storeMap.get(entry.store);
+        if (rec) rec.tabId = response.tabId;
       });
     });
-    header.appendChild(btn);
+    header.appendChild(openBtn);
+
+    const scrapeBtn = document.createElement('button');
+    scrapeBtn.textContent = 'Scrape';
+    scrapeBtn.addEventListener('click', () => {
+      const rec = storeMap.get(entry.store);
+      if (rec && rec.tabId) {
+        chrome.tabs.sendMessage(rec.tabId, { type: 'triggerScrape' });
+      }
+      const url = chrome.runtime.getURL(
+        `scrapeResults.html?item=${encodeURIComponent(itemName)}&store=${encodeURIComponent(entry.store)}`
+      );
+      setTimeout(() => {
+        chrome.windows.create({ url, type: 'popup', width: 400, height: 600 });
+      }, 1000);
+    });
+    header.appendChild(scrapeBtn);
     div.appendChild(header);
 
     const info = document.createElement('div');
@@ -125,7 +144,7 @@ async function init() {
     addProductList(div, entry.store, scraped, info, itemName);
 
     storesContainer.appendChild(div);
-    storeMap.set(entry.store, { div, info });
+    storeMap.set(entry.store, { div, info, tabId: null });
   }
 
   const finalDiv = document.getElementById('final');
