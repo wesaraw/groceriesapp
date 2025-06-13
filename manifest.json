@@ -3,8 +3,14 @@
   "name": "Grocery Price Checker",
   "description": "Find the cheapest grocery items across local stores.",
   "version": "0.1",
-  "permissions": ["storage", "tabs", "activeTab"],
-  "host_permissions": ["https://stopandshop.com/*"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://stopandshop.com/*"
+  ],
   "action": {
     "default_popup": "popup.html"
   },
@@ -13,9 +19,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://stopandshop.com/*"],
-      "js": ["contentScript.js"],
-      "type": "module"
+      "matches": [
+        "https://stopandshop.com/*"
+      ],
+      "js": [
+        "contentScript.js"
+      ]
     }
   ]
 }
