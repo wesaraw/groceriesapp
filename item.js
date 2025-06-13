@@ -56,7 +56,10 @@ async function saveFinal(item, store) {
 function createProductOption(prod, onSelect) {
   const wrap = document.createElement('div');
   const btn = document.createElement('button');
-  btn.textContent = `Select (${prod.price} - ${prod.unit})`;
+  let priceStr = prod.priceNumber != null ? `$${prod.priceNumber.toFixed(2)}` : prod.price;
+  let qtyStr = prod.convertedQty != null ? `${prod.convertedQty.toFixed(2)} oz` : prod.size;
+  let unitStr = prod.pricePerUnit != null ? `$${prod.pricePerUnit.toFixed(2)}/oz` : prod.unit;
+  btn.textContent = `Select (${priceStr} - ${qtyStr} - ${unitStr})`;
   btn.addEventListener('click', () => onSelect(prod));
   const span = document.createElement('span');
   span.textContent = prod.name;
@@ -75,7 +78,10 @@ function addProductList(div, store, products, info, itemName) {
   products.forEach(prod => {
     const opt = createProductOption(prod, async p => {
       await saveSelected(itemName, store, p);
-      info.textContent = `${p.name} - ${p.price} (${p.unit})`;
+      let pStr = p.priceNumber != null ? `$${p.priceNumber.toFixed(2)}` : p.price;
+      let qStr = p.convertedQty != null ? `${p.convertedQty.toFixed(2)} oz` : p.size;
+      let uStr = p.pricePerUnit != null ? `$${p.pricePerUnit.toFixed(2)}/oz` : p.unit;
+      info.textContent = `${p.name} - ${pStr} - ${qStr} - ${uStr}`;
     });
     list.appendChild(opt);
   });
@@ -137,7 +143,10 @@ async function init() {
 
     const selected = await loadSelected(itemName, entry.store);
     if (selected) {
-      info.textContent = `${selected.name} - ${selected.price} (${selected.unit})`;
+      let pStr = selected.priceNumber != null ? `$${selected.priceNumber.toFixed(2)}` : selected.price;
+      let qStr = selected.convertedQty != null ? `${selected.convertedQty.toFixed(2)} oz` : selected.size;
+      let uStr = selected.pricePerUnit != null ? `$${selected.pricePerUnit.toFixed(2)}/oz` : selected.unit;
+      info.textContent = `${selected.name} - ${pStr} - ${qStr} - ${uStr}`;
     }
 
     const scraped = await loadScraped(itemName, entry.store);

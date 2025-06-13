@@ -33,7 +33,10 @@ loadProducts(item, store).then(products => {
   products.forEach(prod => {
     const div = document.createElement('div');
     div.className = 'product';
-    div.textContent = `${prod.name} - ${prod.price} (${prod.unit})`;
+    let pStr = prod.priceNumber != null ? `$${prod.priceNumber.toFixed(2)}` : prod.price;
+    let qStr = prod.convertedQty != null ? `${prod.convertedQty.toFixed(2)} oz` : prod.size;
+    let uStr = prod.pricePerUnit != null ? `$${prod.pricePerUnit.toFixed(2)}/oz` : prod.unit;
+    div.textContent = `${prod.name} - ${pStr} - ${qStr} - ${uStr}`;
     const btn = document.createElement('button');
     btn.textContent = 'Select';
     btn.addEventListener('click', async () => {
