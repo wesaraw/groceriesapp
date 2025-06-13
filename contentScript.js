@@ -1,6 +1,11 @@
+console.log("✅ contentScript.js loaded on page:", window.location.href);
+
 function scrapeStopAndShop() {
   const products = [];
-  document.querySelectorAll('[data-testid="product-tile"]').forEach(tile => {
+  const tiles = document.querySelectorAll('[data-testid="product-tile"]');
+  console.log(`🧱 Found ${tiles.length} product tiles`);
+  tiles.forEach((tile, index) => {
+    console.log(`🔍 Tile ${index + 1} innerHTML:`, tile.innerHTML);
     const name = tile.querySelector('[data-testid="product-title"]')?.innerText?.trim();
 
     const priceText = tile.querySelector('.product-pricing__sale-price')?.innerText?.trim() ||
@@ -21,6 +26,12 @@ function scrapeStopAndShop() {
     }
 
     if (name && priceText) {
+      console.log(`🧾 Tile ${index + 1}`, {
+        name,
+        priceText,
+        perUnit: perUnitText,
+        image
+      });
       products.push({
         name,
         price: priceText,
