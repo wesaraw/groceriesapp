@@ -4,6 +4,10 @@ import { pricePerUnit } from './utils/priceComparer.js';
 
 const STORE_SELECTION_PATH = 'Required for grocery app/store_selection_stopandshop.json';
 
+// Grey placeholder used until real product images load
+const PLACEHOLDER_IMG =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23ccc'/></svg>";
+
 function key(type, item, store) {
   return `${type}_${encodeURIComponent(item)}_${encodeURIComponent(store)}`;
 }
@@ -55,16 +59,30 @@ async function saveFinal(item, store) {
 
 function createProductOption(prod, onSelect) {
   const wrap = document.createElement('div');
+  wrap.className = 'product';
+
+  const img = document.createElement('img');
+  img.src = prod.image || PLACEHOLDER_IMG;
+  img.width = 200;
+  img.height = 200;
+  img.alt = prod.name;
+  img.onerror = () => {
+    img.src = PLACEHOLDER_IMG;
+  };
+  wrap.appendChild(img);
+
+  const span = document.createElement('span');
+  span.textContent = prod.name;
+  wrap.appendChild(span);
+
   const btn = document.createElement('button');
   let priceStr = prod.priceNumber != null ? `$${prod.priceNumber.toFixed(2)}` : prod.price;
   let qtyStr = prod.convertedQty != null ? `${prod.convertedQty.toFixed(2)} oz` : prod.size;
   let unitStr = prod.pricePerUnit != null ? `$${prod.pricePerUnit.toFixed(2)}/oz` : prod.unit;
   btn.textContent = `Select (${priceStr} - ${qtyStr} - ${unitStr})`;
   btn.addEventListener('click', () => onSelect(prod));
-  const span = document.createElement('span');
-  span.textContent = prod.name;
-  wrap.appendChild(span);
   wrap.appendChild(btn);
+
   return wrap;
 }
 

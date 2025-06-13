@@ -23,6 +23,9 @@ const store = params.get('store');
 const title = document.getElementById('title');
 const container = document.getElementById('products');
 
+const PLACEHOLDER_IMG =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='%23ccc'/></svg>";
+
 title.textContent = `${item} - ${store}`;
 
 loadProducts(item, store).then(products => {
@@ -33,10 +36,24 @@ loadProducts(item, store).then(products => {
   products.forEach(prod => {
     const div = document.createElement('div');
     div.className = 'product';
+
+    const img = document.createElement('img');
+    img.src = prod.image || PLACEHOLDER_IMG;
+    img.width = 200;
+    img.height = 200;
+    img.alt = prod.name;
+    img.onerror = () => {
+      img.src = PLACEHOLDER_IMG;
+    };
+    div.appendChild(img);
+
     let pStr = prod.priceNumber != null ? `$${prod.priceNumber.toFixed(2)}` : prod.price;
     let qStr = prod.convertedQty != null ? `${prod.convertedQty.toFixed(2)} oz` : prod.size;
     let uStr = prod.pricePerUnit != null ? `$${prod.pricePerUnit.toFixed(2)}/oz` : prod.unit;
-    div.textContent = `${prod.name} - ${pStr} - ${qStr} - ${uStr}`;
+    const info = document.createElement('span');
+    info.textContent = `${prod.name} - ${pStr} - ${qStr} - ${uStr}`;
+    div.appendChild(info);
+
     const btn = document.createElement('button');
     btn.textContent = 'Select';
     btn.addEventListener('click', async () => {
