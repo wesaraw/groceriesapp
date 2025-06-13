@@ -1,12 +1,14 @@
 export function scrapeStopAndShop() {
   const products = [];
-  const tiles = document.querySelectorAll('li[class*="StyledProductCard"]');
+  const tiles = document.querySelectorAll('li.tile.product-cell.product-grid-cell');
   tiles.forEach(tile => {
-    const name = tile.querySelector('h3[class^="ProductName__StyledProductName"]')?.innerText?.trim();
+    const name = tile.querySelector('.product-grid-cell_price-container > .sr-only')?.innerText?.trim();
 
-    const priceText = tile.querySelector('span.sr-only')?.innerText?.trim();
+    const priceText = tile.querySelector('.product-grid-cell_main-price')?.innerText?.trim();
 
-    const perUnitText = tile.querySelector('span.PricePerUnit')?.innerText?.trim();
+    const unitSize = tile.querySelector('.product-grid-cell_size')?.innerText?.trim();
+
+    const perUnitText = tile.querySelector('.product-grid-cell_unit')?.innerText?.trim();
 
     const image = tile.querySelector('img')?.src || '';
 
@@ -25,6 +27,7 @@ export function scrapeStopAndShop() {
       products.push({
         name,
         price: priceText,
+        size: unitSize || '',
         unit: perUnitText || '',
         unitQty,
         unitType,
