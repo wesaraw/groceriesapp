@@ -65,6 +65,23 @@ function createProductOption(prod, onSelect) {
   return wrap;
 }
 
+function addProductList(div, store, products, info, itemName) {
+  if (!products || products.length === 0) return;
+  // Remove existing list if any
+  const existing = div.querySelector('.product-list');
+  if (existing) existing.remove();
+  const list = document.createElement('div');
+  list.className = 'product-list';
+  products.forEach(prod => {
+    const opt = createProductOption(prod, async p => {
+      await saveSelected(itemName, store, p);
+      info.textContent = `${p.name} - ${p.price} (${p.unit})`;
+    });
+    list.appendChild(opt);
+  });
+  div.appendChild(list);
+}
+
 async function init() {
   await initUomTable();
   const params = new URLSearchParams(location.search);
@@ -76,6 +93,7 @@ async function init() {
 
   const stores = await getStoreEntries(itemName);
   const storesContainer = document.getElementById('stores');
+  const storeMap = new Map();
 
   for (const entry of stores) {
     const div = document.createElement('div');
@@ -104,20 +122,10 @@ async function init() {
     }
 
     const scraped = await loadScraped(itemName, entry.store);
-    if (scraped && scraped.length > 0) {
-      const list = document.createElement('div');
-      list.className = 'product-list';
-      scraped.forEach(prod => {
-        const opt = createProductOption(prod, async (p) => {
-          await saveSelected(itemName, entry.store, p);
-          info.textContent = `${p.name} - ${p.price} (${p.unit})`;
-        });
-        list.appendChild(opt);
-      });
-      div.appendChild(list);
-    }
+    addProductList(div, entry.store, scraped, info, itemName);
 
     storesContainer.appendChild(div);
+    storeMap.set(entry.store, { div, info });
   }
 
   const finalDiv = document.getElementById('final');
@@ -138,6 +146,15 @@ async function init() {
     }
   });
   finalDiv.appendChild(chooseBtn);
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'scrapedData' && message.item === itemName) {
+      const entry = storeMap.get(message.store);
+      if (entry) {
+        addProductList(entry.div, message.store, message.products, entry.info, itemName);
+      }
+    }
+  });
 }
 
 init();
