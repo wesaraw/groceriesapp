@@ -18,17 +18,15 @@ async function getData() {
   return { needs, selections, consumption, stock, expiration };
 }
 
-function buildLinkMap(selections) {
-  const map = {};
-  selections.forEach(sel => {
-    map[sel.name] = sel.link;
+function getFinal(itemName) {
+  const key = `final_${encodeURIComponent(itemName)}`;
+  return new Promise(resolve => {
+    chrome.storage.local.get([key], data => resolve(data[key]));
   });
-  return map;
 }
 
 async function init() {
   const { needs, selections, consumption, stock, expiration } = await getData();
-  const linkMap = buildLinkMap(selections);
   const purchaseInfo = calculatePurchaseNeeds(needs, consumption, stock, expiration);
   const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
   const itemsContainer = document.getElementById('items');
@@ -37,19 +35,22 @@ async function init() {
     const li = document.createElement('li');
     const info = purchaseMap.get(item.name);
     const amountText = info ? ` (Need: ${info.toBuy} ${info.home_unit})` : '';
-    li.textContent = item.name + amountText;
-
     const btn = document.createElement('button');
-    btn.textContent = 'Open Stop & Shop';
+    btn.textContent = item.name + amountText;
     btn.addEventListener('click', () => {
-      const url = linkMap[item.name];
-      if (url) {
-        chrome.runtime.sendMessage({ type: 'openStoreTab', url, item: item.name });
+      const url = chrome.runtime.getURL(
+        `item.html?item=${encodeURIComponent(item.name)}`
+      );
+      chrome.windows.create({ url, type: 'popup', width: 400, height: 600 });
+    });
+    li.appendChild(btn);
+    const finalSpan = document.createElement('span');
+    getFinal(item.name).then(store => {
+      if (store) {
+        finalSpan.textContent = ` - ${store}`;
       }
     });
-
-    li.appendChild(document.createElement('br'));
-    li.appendChild(btn);
+    li.appendChild(finalSpan);
     itemsContainer.appendChild(li);
   });
 }

@@ -1,8 +1,11 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'openStoreTab') {
-    chrome.tabs.create({ url: message.url });
+    const { url, item, store } = message;
+    chrome.storage.local.set({ currentItemInfo: { item, store } }, () => {
+      chrome.tabs.create({ url });
+    });
   } else if (message.type === 'scrapedData') {
-    const key = `${message.item}-${Date.now()}`;
+    const key = `scraped_${encodeURIComponent(message.item)}_${encodeURIComponent(message.store)}`;
     chrome.storage.local.set({ [key]: message.products });
   }
 });
