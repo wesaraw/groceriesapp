@@ -42,10 +42,13 @@ export function scrapeWalmart() {
     const perUnitText = tile.querySelector('.gray')?.innerText?.trim();
     let pricePerUnit = null;
     let unitType = null;
-    const match = perUnitText?.match(/\$([\d.]+)\/(\w+)/);
+    const match = perUnitText?.match(/\$([\d.]+)\/?\s*([\d.]*)\s*(\w+)/);
     if (match) {
-      pricePerUnit = parseFloat(match[1]);
-      unitType = match[2].toLowerCase();
+      let priceVal = parseFloat(match[1]);
+      const qtyVal = parseFloat(match[2]);
+      const qty = !isNaN(qtyVal) && qtyVal !== 0 ? qtyVal : 1;
+      pricePerUnit = priceVal / qty;
+      unitType = match[3].toLowerCase();
       const factor = UNIT_FACTORS[unitType];
       if (factor) {
         pricePerUnit = pricePerUnit / factor;
