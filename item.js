@@ -126,9 +126,13 @@ async function init() {
     const openBtn = document.createElement('button');
     openBtn.textContent = entry.store;
     openBtn.addEventListener('click', () => {
+      let link = entry.link;
+      if (entry.store === 'Walmart') {
+        link = link.replace(/%2B/g, '+');
+      }
       chrome.runtime.sendMessage({
         type: 'openStoreTab',
-        url: entry.link,
+        url: link,
         item: itemName,
         store: entry.store
       }, response => {
