@@ -107,6 +107,20 @@ async function init() {
       }, 1000);
     });
     header.appendChild(scrapeBtn);
+
+    const finalBtn = document.createElement('button');
+    finalBtn.textContent = 'Final Selection';
+    finalBtn.style.display = 'none';
+    finalBtn.addEventListener('click', async () => {
+      await saveFinal(itemName, entry.store);
+      chrome.runtime.sendMessage({
+        type: 'finalSelection',
+        item: itemName,
+        store: entry.store
+      });
+      window.close();
+    });
+    header.appendChild(finalBtn);
     div.appendChild(header);
 
     const info = document.createElement('div');
@@ -134,32 +148,16 @@ async function init() {
       img.src = selected.image || PLACEHOLDER_IMG;
       img.alt = selected.name;
       img.style.display = 'block';
+      finalBtn.style.display = 'inline';
     }
 
     // Previously scraped results are no longer shown in this window
 
     storesContainer.appendChild(div);
-    storeMap.set(entry.store, { div, info, img, tabId: null });
+    storeMap.set(entry.store, { div, info, img, tabId: null, finalBtn });
   }
 
-  const finalDiv = document.getElementById('final');
-  const finalHeader = document.createElement('h2');
-  finalHeader.textContent = 'Final Selection';
-  finalDiv.appendChild(finalHeader);
-  const finalInfo = document.createElement('div');
-  const currentFinal = await loadFinal(itemName);
-  finalInfo.textContent = currentFinal ? `Selected store: ${currentFinal}` : 'None';
-  finalDiv.appendChild(finalInfo);
-  const chooseBtn = document.createElement('button');
-  chooseBtn.textContent = 'Choose Store';
-  chooseBtn.addEventListener('click', async () => {
-    const store = prompt('Enter store name exactly as above:');
-    if (store) {
-      await saveFinal(itemName, store);
-      finalInfo.textContent = `Selected store: ${store}`;
-    }
-  });
-  finalDiv.appendChild(chooseBtn);
+
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'selectedItem' && message.item === itemName) {
@@ -182,6 +180,7 @@ async function init() {
         rec.img.src = selected.image || PLACEHOLDER_IMG;
         rec.img.alt = selected.name;
         rec.img.style.display = 'block';
+        rec.finalBtn.style.display = 'inline';
       }
     }
   });
