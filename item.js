@@ -146,7 +146,29 @@ async function init() {
   });
   finalDiv.appendChild(chooseBtn);
 
-  // No listener needed since scraped data is shown in the dedicated results window
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'selectedItem' && message.item === itemName) {
+      const rec = storeMap.get(message.store);
+      if (rec) {
+        const selected = message.product;
+        let pStr =
+          selected.priceNumber != null
+            ? `$${selected.priceNumber.toFixed(2)}`
+            : selected.price;
+        let qStr =
+          selected.convertedQty != null
+            ? `${selected.convertedQty.toFixed(2)} oz`
+            : selected.size;
+        let uStr =
+          selected.pricePerUnit != null
+            ? `$${selected.pricePerUnit.toFixed(2)}/oz`
+            : selected.unit;
+        rec.info.textContent = `${selected.name} - ${pStr} - ${qStr} - ${uStr}`;
+      }
+    }
+  });
+
+  // Listener updates store info when a product is chosen in the results window
 }
 
 init();
