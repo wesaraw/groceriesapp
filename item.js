@@ -41,9 +41,10 @@ async function loadFinal(item) {
   return data[k] || null;
 }
 
-async function saveFinal(item, store) {
-  const k = `final_${encodeURIComponent(item)}`;
-  await setStorage({ [k]: store });
+async function saveFinal(item, store, product) {
+  const storeKey = `final_${encodeURIComponent(item)}`;
+  const productKey = `final_product_${encodeURIComponent(item)}`;
+  await setStorage({ [storeKey]: store, [productKey]: product });
 }
 
 function nameMatchesProduct(productName, itemName) {
@@ -112,11 +113,14 @@ async function init() {
     finalBtn.textContent = 'Final Selection';
     finalBtn.style.display = 'none';
     finalBtn.addEventListener('click', async () => {
-      await saveFinal(itemName, entry.store);
+      const rec = storeMap.get(entry.store);
+      const product = rec ? rec.selectedProduct : null;
+      await saveFinal(itemName, entry.store, product);
       chrome.runtime.sendMessage({
         type: 'finalSelection',
         item: itemName,
-        store: entry.store
+        store: entry.store,
+        product
       });
       window.close();
     });
@@ -154,7 +158,14 @@ async function init() {
     // Previously scraped results are no longer shown in this window
 
     storesContainer.appendChild(div);
-    storeMap.set(entry.store, { div, info, img, tabId: null, finalBtn });
+    storeMap.set(entry.store, {
+      div,
+      info,
+      img,
+      tabId: null,
+      finalBtn,
+      selectedProduct: selected || null
+    });
   }
 
 
@@ -181,6 +192,7 @@ async function init() {
         rec.img.alt = selected.name;
         rec.img.style.display = 'block';
         rec.finalBtn.style.display = 'inline';
+        rec.selectedProduct = selected;
       }
     }
   });

@@ -27,6 +27,13 @@ function getFinal(itemName) {
   });
 }
 
+function getFinalProduct(itemName) {
+  const key = `final_product_${encodeURIComponent(itemName)}`;
+  return new Promise(resolve => {
+    chrome.storage.local.get([key], data => resolve(data[key]));
+  });
+}
+
 async function init() {
   const { needs, selections, consumption, stock, expiration } = await getData();
   const purchaseInfo = calculatePurchaseNeeds(needs, consumption, stock, expiration);
@@ -47,13 +54,38 @@ async function init() {
     });
     li.appendChild(btn);
     const finalSpan = document.createElement('span');
-    getFinal(item.name).then(store => {
+    const finalImg = document.createElement('img');
+    finalImg.className = 'final-product-img';
+    finalImg.width = 50;
+    finalImg.height = 50;
+    finalImg.style.display = 'none';
+    getFinal(item.name).then(async store => {
+      const product = await getFinalProduct(item.name);
       if (store) {
         finalSpan.textContent = ` - ${store}`;
       }
+      if (product) {
+        let pStr =
+          product.priceNumber != null
+            ? `$${product.priceNumber.toFixed(2)}`
+            : product.price;
+        let qStr =
+          product.convertedQty != null
+            ? `${product.convertedQty.toFixed(2)} oz`
+            : product.size;
+        let uStr =
+          product.pricePerUnit != null
+            ? `$${product.pricePerUnit.toFixed(2)}/oz`
+            : product.unit;
+        finalSpan.textContent += ` - ${product.name} - ${pStr} - ${qStr} - ${uStr}`;
+        finalImg.src = product.image || '';
+        finalImg.alt = product.name || '';
+        finalImg.style.display = 'inline';
+      }
     });
     li.appendChild(finalSpan);
-    finalMap.set(item.name, finalSpan);
+    li.appendChild(finalImg);
+    finalMap.set(item.name, { span: finalSpan, img: finalImg });
     itemsContainer.appendChild(li);
   });
 }
@@ -66,9 +98,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('Received data for', message.item);
     console.log(message.products);
   } else if (message.type === 'finalSelection') {
-    const span = finalMap.get(message.item);
-    if (span) {
+    const rec = finalMap.get(message.item);
+    if (rec) {
+      const { span, img } = rec;
       span.textContent = ` - ${message.store}`;
+      if (message.product) {
+        const product = message.product;
+        let pStr =
+          product.priceNumber != null
+            ? `$${product.priceNumber.toFixed(2)}`
+            : product.price;
+        let qStr =
+          product.convertedQty != null
+            ? `${product.convertedQty.toFixed(2)} oz`
+            : product.size;
+        let uStr =
+          product.pricePerUnit != null
+            ? `$${product.pricePerUnit.toFixed(2)}/oz`
+            : product.unit;
+        span.textContent += ` - ${product.name} - ${pStr} - ${qStr} - ${uStr}`;
+        img.src = product.image || '';
+        img.alt = product.name || '';
+        img.style.display = 'inline';
+      }
     }
   }
 });
