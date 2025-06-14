@@ -9,7 +9,8 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://stopandshop.com/*"
+    "https://stopandshop.com/*",
+    "https://www.walmart.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -20,7 +21,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://stopandshop.com/*"
+        "https://stopandshop.com/*",
+        "https://www.walmart.com/*"
       ],
       "js": [
         "contentScript.js"
