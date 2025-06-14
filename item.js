@@ -1,6 +1,5 @@
 import { loadJSON } from './utils/dataLoader.js';
-import { initUomTable, convert } from './utils/uomConverter.js';
-import { pricePerUnit } from './utils/priceComparer.js';
+import { initUomTable } from './utils/uomConverter.js';
 
 const STORE_SELECTION_PATH = 'Required for grocery app/store_selection_stopandshop.json';
 
@@ -29,22 +28,12 @@ async function getStoreEntries(itemName) {
   return all.filter(e => e.name === itemName);
 }
 
-async function loadScraped(item, store) {
-  const k = key('scraped', item, store);
-  const data = await getStorage([k]);
-  return data[k] || null;
-}
-
 async function loadSelected(item, store) {
   const k = key('selected', item, store);
   const data = await getStorage([k]);
   return data[k] || null;
 }
 
-async function saveSelected(item, store, product) {
-  const k = key('selected', item, store);
-  await setStorage({ [k]: product });
-}
 
 async function loadFinal(item) {
   const k = `final_${encodeURIComponent(item)}`;
@@ -66,63 +55,6 @@ function nameMatchesProduct(productName, itemName) {
   return itemWords.some(w => prod.includes(w));
 }
 
-function createProductOption(prod, onSelect) {
-  const wrap = document.createElement('div');
-  wrap.className = 'product';
-
-  const img = document.createElement('img');
-  img.src = prod.image || PLACEHOLDER_IMG;
-  img.width = 200;
-  img.height = 200;
-  img.alt = prod.name;
-  img.onerror = () => {
-    img.src = PLACEHOLDER_IMG;
-  };
-  wrap.appendChild(img);
-
-  const span = document.createElement('span');
-  span.textContent = prod.name;
-  wrap.appendChild(span);
-
-  const btn = document.createElement('button');
-  let priceStr = prod.priceNumber != null ? `$${prod.priceNumber.toFixed(2)}` : prod.price;
-  let qtyStr = prod.convertedQty != null ? `${prod.convertedQty.toFixed(2)} oz` : prod.size;
-  let unitStr = prod.pricePerUnit != null ? `$${prod.pricePerUnit.toFixed(2)}/oz` : prod.unit;
-  btn.textContent = `Select (${priceStr} - ${qtyStr} - ${unitStr})`;
-  btn.addEventListener('click', () => onSelect(prod));
-  wrap.appendChild(btn);
-
-  return wrap;
-}
-
-function addProductList(div, store, products, info, itemName) {
-  if (!products || products.length === 0) return;
-  const filtered = products.filter(p => nameMatchesProduct(p.name, itemName));
-  if (filtered.length === 0) return;
-  // Remove existing list if any
-  const existing = div.querySelector('.product-list');
-  if (existing) existing.remove();
-  const list = document.createElement('div');
-  list.className = 'product-list';
-
-  const sorted = [...filtered].sort((a, b) => {
-    const aPrice = a.pricePerUnit ?? Infinity;
-    const bPrice = b.pricePerUnit ?? Infinity;
-    return aPrice - bPrice;
-  });
-
-  sorted.forEach(prod => {
-    const opt = createProductOption(prod, async p => {
-      await saveSelected(itemName, store, p);
-      let pStr = p.priceNumber != null ? `$${p.priceNumber.toFixed(2)}` : p.price;
-      let qStr = p.convertedQty != null ? `${p.convertedQty.toFixed(2)} oz` : p.size;
-      let uStr = p.pricePerUnit != null ? `$${p.pricePerUnit.toFixed(2)}/oz` : p.unit;
-      info.textContent = `${p.name} - ${pStr} - ${qStr} - ${uStr}`;
-    });
-    list.appendChild(opt);
-  });
-  div.appendChild(list);
-}
 
 async function init() {
   await initUomTable();
@@ -189,8 +121,7 @@ async function init() {
       info.textContent = `${selected.name} - ${pStr} - ${qStr} - ${uStr}`;
     }
 
-    const scraped = await loadScraped(itemName, entry.store);
-    addProductList(div, entry.store, scraped, info, itemName);
+    // Previously scraped results are no longer shown in this window
 
     storesContainer.appendChild(div);
     storeMap.set(entry.store, { div, info, tabId: null });
@@ -215,14 +146,7 @@ async function init() {
   });
   finalDiv.appendChild(chooseBtn);
 
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'scrapedData' && message.item === itemName) {
-      const entry = storeMap.get(message.store);
-      if (entry) {
-        addProductList(entry.div, message.store, message.products, entry.info, itemName);
-      }
-    }
-  });
+  // No listener needed since scraped data is shown in the dedicated results window
 }
 
 init();
