@@ -93,7 +93,14 @@ function addProductList(div, store, products, info, itemName) {
   if (existing) existing.remove();
   const list = document.createElement('div');
   list.className = 'product-list';
-  products.forEach(prod => {
+
+  const sorted = [...products].sort((a, b) => {
+    const aPrice = a.pricePerUnit ?? Infinity;
+    const bPrice = b.pricePerUnit ?? Infinity;
+    return aPrice - bPrice;
+  });
+
+  sorted.forEach(prod => {
     const opt = createProductOption(prod, async p => {
       await saveSelected(itemName, store, p);
       let pStr = p.priceNumber != null ? `$${p.priceNumber.toFixed(2)}` : p.price;

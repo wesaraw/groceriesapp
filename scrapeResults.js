@@ -33,7 +33,14 @@ loadProducts(item, store).then(products => {
     container.textContent = 'No products found.';
     return;
   }
-  products.forEach(prod => {
+
+  const sorted = [...products].sort((a, b) => {
+    const aPrice = a.pricePerUnit ?? Infinity;
+    const bPrice = b.pricePerUnit ?? Infinity;
+    return aPrice - bPrice;
+  });
+
+  sorted.forEach(prod => {
     const div = document.createElement('div');
     div.className = 'product';
 
