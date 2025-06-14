@@ -154,42 +154,70 @@ function scrapeWalmart() {
   const tiles = document.querySelectorAll('[data-testid="list-view"] > div');
   tiles.forEach((tile, i) => {
     const name = tile.querySelector('[data-automation-id="product-title"]')?.innerText?.trim();
+    const packMatch = name?.match(/(\d+)\s*pack/i);
+    const packCount = packMatch ? parseInt(packMatch[1], 10) : 1;
     const priceMatch = tile.querySelector('[data-automation-id="product-price"]')?.innerText?.match(/\$?\d+\.\d{2}/);
     const price = priceMatch ? priceMatch[0] : null;
-    const perUnitText = tile.querySelector('.gray')?.innerText?.trim();
-    let pricePerUnit = null;
-    let unitType = null;
-    const match = perUnitText?.match(/\$([\d.]+)\/?\s*([\d.]*)\s*(\w+)/);
-    if (match) {
-      let priceVal = parseFloat(match[1]);
-      const qtyVal = parseFloat(match[2]);
-      const qty = !isNaN(qtyVal) && qtyVal !== 0 ? qtyVal : 1;
-      pricePerUnit = priceVal / qty;
-      unitType = match[3].toLowerCase();
-      const factor = UNIT_FACTORS[unitType];
-      if (factor) {
-        pricePerUnit = pricePerUnit / factor;
-        unitType = 'oz';
-      }
-    }
-    const image = tile.querySelector('img[data-testid="productTileImage"]')?.src || '';
     let priceNumber = null;
     if (price) {
       const p = parseFloat(price.replace(/[^0-9.]/g, ''));
       if (!isNaN(p)) priceNumber = p;
     }
+    const perUnitText = tile.querySelector('.gray')?.innerText?.trim();
+    let pricePerUnit = null;
+    let unitType = null;
+    let sizeQty = null;
+    let sizeUnit = null;
+    let convertedQty = null;
+
+    const sizeMatch = name?.match(/(\d+(?:\.\d+)?)\s*(fl\s*oz|oz|lb|g|kg|ml|l|ct)/i);
+    if (sizeMatch) {
+      sizeQty = parseFloat(sizeMatch[1]);
+      sizeUnit = sizeMatch[2].replace(/\s+/g, '');
+      if (packCount > 1) {
+        sizeQty = sizeQty / packCount;
+      }
+      const factor = UNIT_FACTORS[sizeUnit.toLowerCase()];
+      if (factor) {
+        convertedQty = sizeQty * factor;
+        unitType = 'oz';
+        if (price) {
+          const p = parseFloat(price.replace(/[^0-9.]/g, ''));
+          if (!isNaN(p)) {
+            pricePerUnit = p / (convertedQty * packCount);
+          }
+        }
+      }
+    }
+
+    if (pricePerUnit == null) {
+      const match = perUnitText?.match(/\$([\d.]+)\/?\s*([\d.]*)\s*(\w+)/);
+      if (match) {
+        let priceVal = parseFloat(match[1]);
+        const qtyVal = parseFloat(match[2]);
+        const qty = !isNaN(qtyVal) && qtyVal !== 0 ? qtyVal : 1;
+        pricePerUnit = priceVal / qty;
+        unitType = match[3].toLowerCase();
+        const factor = UNIT_FACTORS[unitType];
+        if (factor) {
+          pricePerUnit = pricePerUnit / factor;
+          unitType = 'oz';
+        }
+      }
+    }
+    const image = tile.querySelector('img[data-testid="productTileImage"]')?.src || '';
     if (name && price) {
       products.push({
         name,
         price,
         priceNumber,
         size: '',
-        sizeQty: null,
-        sizeUnit: null,
+        sizeQty,
+        sizeUnit,
         unit: perUnitText || '',
         unitQty: null,
         unitType,
-        convertedQty: null,
+        convertedQty,
         pricePerUnit,
         image
       });
