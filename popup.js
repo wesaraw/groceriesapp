@@ -18,6 +18,8 @@ async function getData() {
   return { needs, selections, consumption, stock, expiration };
 }
 
+const finalMap = new Map();
+
 function getFinal(itemName) {
   const key = `final_${encodeURIComponent(itemName)}`;
   return new Promise(resolve => {
@@ -51,6 +53,7 @@ async function init() {
       }
     });
     li.appendChild(finalSpan);
+    finalMap.set(item.name, finalSpan);
     itemsContainer.appendChild(li);
   });
 }
@@ -62,5 +65,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'scrapedData') {
     console.log('Received data for', message.item);
     console.log(message.products);
+  } else if (message.type === 'finalSelection') {
+    const span = finalMap.get(message.item);
+    if (span) {
+      span.textContent = ` - ${message.store}`;
+    }
   }
 });
