@@ -113,18 +113,33 @@ async function init() {
     info.textContent = 'No item selected';
     div.appendChild(info);
 
+    const img = document.createElement('img');
+    img.className = 'selected-product-img';
+    img.src = PLACEHOLDER_IMG;
+    img.width = 200;
+    img.height = 200;
+    img.alt = '';
+    img.style.display = 'none';
+    img.onerror = () => {
+      img.src = PLACEHOLDER_IMG;
+    };
+    div.appendChild(img);
+
     const selected = await loadSelected(itemName, entry.store);
     if (selected) {
       let pStr = selected.priceNumber != null ? `$${selected.priceNumber.toFixed(2)}` : selected.price;
       let qStr = selected.convertedQty != null ? `${selected.convertedQty.toFixed(2)} oz` : selected.size;
       let uStr = selected.pricePerUnit != null ? `$${selected.pricePerUnit.toFixed(2)}/oz` : selected.unit;
       info.textContent = `${selected.name} - ${pStr} - ${qStr} - ${uStr}`;
+      img.src = selected.image || PLACEHOLDER_IMG;
+      img.alt = selected.name;
+      img.style.display = 'block';
     }
 
     // Previously scraped results are no longer shown in this window
 
     storesContainer.appendChild(div);
-    storeMap.set(entry.store, { div, info, tabId: null });
+    storeMap.set(entry.store, { div, info, img, tabId: null });
   }
 
   const finalDiv = document.getElementById('final');
@@ -164,6 +179,9 @@ async function init() {
             ? `$${selected.pricePerUnit.toFixed(2)}/oz`
             : selected.unit;
         rec.info.textContent = `${selected.name} - ${pStr} - ${qStr} - ${uStr}`;
+        rec.img.src = selected.image || PLACEHOLDER_IMG;
+        rec.img.alt = selected.name;
+        rec.img.style.display = 'block';
       }
     }
   });
