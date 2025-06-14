@@ -75,6 +75,12 @@ loadProducts(item, store).then(products => {
     btn.textContent = 'Select';
     btn.addEventListener('click', async () => {
       await saveSelected(item, store, prod);
+      chrome.runtime.sendMessage({
+        type: 'selectedItem',
+        item,
+        store,
+        product: prod
+      });
       window.close();
     });
     div.appendChild(document.createElement('br'));
