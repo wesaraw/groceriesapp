@@ -57,6 +57,15 @@ async function saveFinal(item, store) {
   await setStorage({ [k]: store });
 }
 
+function nameMatchesProduct(productName, itemName) {
+  const itemWords = itemName
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  const prod = productName.toLowerCase();
+  return itemWords.some(w => prod.includes(w));
+}
+
 function createProductOption(prod, onSelect) {
   const wrap = document.createElement('div');
   wrap.className = 'product';
@@ -88,13 +97,15 @@ function createProductOption(prod, onSelect) {
 
 function addProductList(div, store, products, info, itemName) {
   if (!products || products.length === 0) return;
+  const filtered = products.filter(p => nameMatchesProduct(p.name, itemName));
+  if (filtered.length === 0) return;
   // Remove existing list if any
   const existing = div.querySelector('.product-list');
   if (existing) existing.remove();
   const list = document.createElement('div');
   list.className = 'product-list';
 
-  const sorted = [...products].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const aPrice = a.pricePerUnit ?? Infinity;
     const bPrice = b.pricePerUnit ?? Infinity;
     return aPrice - bPrice;

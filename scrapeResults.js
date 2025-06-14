@@ -16,6 +16,15 @@ function saveSelected(item, store, product) {
   });
 }
 
+function nameMatchesProduct(productName, itemName) {
+  const itemWords = itemName
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  const prod = productName.toLowerCase();
+  return itemWords.some(w => prod.includes(w));
+}
+
 const params = new URLSearchParams(location.search);
 const item = params.get('item');
 const store = params.get('store');
@@ -29,12 +38,13 @@ const PLACEHOLDER_IMG =
 title.textContent = `${item} - ${store}`;
 
 loadProducts(item, store).then(products => {
-  if (products.length === 0) {
+  const filtered = products.filter(p => nameMatchesProduct(p.name, item));
+  if (filtered.length === 0) {
     container.textContent = 'No products found.';
     return;
   }
 
-  const sorted = [...products].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const aPrice = a.pricePerUnit ?? Infinity;
     const bPrice = b.pricePerUnit ?? Infinity;
     return aPrice - bPrice;
