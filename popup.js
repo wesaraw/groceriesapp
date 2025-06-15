@@ -9,6 +9,23 @@ const STOCK_PATH = 'Required for grocery app/current_stock_table.json';
 const EXPIRATION_PATH = 'Required for grocery app/expiration_times_full.json';
 const CONSUMED_PATH = 'consumedThisYear';
 
+function loadArray(key, path) {
+  return new Promise(async resolve => {
+    chrome.storage.local.get(key, async data => {
+      if (data[key]) {
+        resolve(data[key]);
+      } else {
+        const arr = await loadJSON(path);
+        resolve(arr);
+      }
+    });
+  });
+}
+
+const loadNeeds = () => loadArray('yearlyNeeds', YEARLY_NEEDS_PATH);
+const loadMonthlyConsumption = () => loadArray('monthlyConsumption', CONSUMPTION_PATH);
+const loadExpiration = () => loadArray('expirationData', EXPIRATION_PATH);
+
 async function loadStock() {
   return new Promise(async resolve => {
     chrome.storage.local.get('currentStock', async data => {
@@ -28,7 +45,7 @@ async function loadConsumed() {
       if (data[CONSUMED_PATH]) {
         resolve(data[CONSUMED_PATH]);
       } else {
-        const needs = await loadJSON(YEARLY_NEEDS_PATH);
+        const needs = await loadNeeds();
         resolve(
           needs.map(n => ({ name: n.name, amount: 0, unit: n.home_unit }))
         );
@@ -40,11 +57,11 @@ async function loadConsumed() {
 async function getData() {
   const [needs, selections, consumption, stock, expiration, consumed] =
     await Promise.all([
-      loadJSON(YEARLY_NEEDS_PATH),
+      loadNeeds(),
       loadJSON(STORE_SELECTION_PATH),
-      loadJSON(CONSUMPTION_PATH),
+      loadMonthlyConsumption(),
       loadStock(),
-      loadJSON(EXPIRATION_PATH),
+      loadExpiration(),
       loadConsumed()
     ]);
   return { needs, selections, consumption, stock, expiration, consumed };
@@ -209,6 +226,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
     consumedYearData = newConsumed;
     refreshNeeds(stockData, newConsumed);
   }
+  if (
+    area === 'local' &&
+    (changes.yearlyNeeds || changes.monthlyConsumption || changes.expirationData)
+  ) {
+    location.reload();
+  }
 });
 
 async function loadCommitData(itemName) {
@@ -288,3 +311,10 @@ function openConsumption() {
 document
   .getElementById('editConsumption')
   .addEventListener('click', openConsumption);
+
+function openAddItem() {
+  const url = chrome.runtime.getURL("addItem.html");
+  chrome.windows.create({ url, type: "popup", width: 400, height: 600 });
+}
+
+document.getElementById("addItem").addEventListener("click", openAddItem);

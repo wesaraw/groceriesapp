@@ -1,6 +1,21 @@
 import { loadJSON } from './utils/dataLoader.js';
 
+const NEEDS_KEY = 'yearlyNeeds';
+
 const NEEDS_PATH = 'Required for grocery app/yearly_needs_with_manual_flags.json';
+
+function loadNeeds() {
+  return new Promise(async resolve => {
+    chrome.storage.local.get(NEEDS_KEY, async data => {
+      if (data[NEEDS_KEY]) {
+        resolve(data[NEEDS_KEY]);
+      } else {
+        const needs = await loadJSON(NEEDS_PATH);
+        resolve(needs);
+      }
+    });
+  });
+}
 
 async function loadConsumption() {
   return new Promise(async resolve => {
@@ -8,7 +23,7 @@ async function loadConsumption() {
       if (data.consumedThisYear) {
         resolve(data.consumedThisYear);
       } else {
-        const needs = await loadJSON(NEEDS_PATH);
+        const needs = await loadNeeds();
         resolve(needs.map(n => ({ name: n.name, amount: 0, unit: n.home_unit })));
       }
     });
@@ -105,7 +120,7 @@ async function init() {
   const [consumed, history, needs] = await Promise.all([
     loadConsumption(),
     loadHistory(),
-    loadJSON(NEEDS_PATH)
+    loadNeeds()
   ]);
   const map = new Map(consumed.map(i => [i.name, i]));
   // ensure all needs exist
