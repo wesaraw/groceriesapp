@@ -14,10 +14,18 @@
       vertical-align: middle;
       display: none;
     }
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
-  <h1>Grocery Items</h1>
+  <div id="header">
+    <h1>Grocery Items</h1>
+    <button id="commit">Commit</button>
+  </div>
   <ul id="items"></ul>
   <script type="module" src="popup.js"></script>
 </body>
