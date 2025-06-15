@@ -93,7 +93,9 @@ async function init() {
   needs.forEach(item => {
     const li = document.createElement('li');
     const info = purchaseMap.get(item.name);
-    const amountText = info ? ` (Need: ${info.toBuy} ${info.home_unit})` : '';
+    const needAmt = info ? Math.round(info.toBuy) : null;
+    const amountText =
+      info && !isNaN(needAmt) ? ` (Need: ${needAmt} ${info.home_unit})` : '';
     const btn = document.createElement('button');
     btn.textContent = item.name + amountText;
     btn.addEventListener('click', () => {
@@ -189,7 +191,9 @@ async function refreshNeeds(stock = stockData, consumed = consumedYearData) {
     const rec = finalMap.get(item.name);
     if (rec && rec.btn) {
       const info = purchaseMap.get(item.name);
-      const amountText = info ? ` (Need: ${info.toBuy} ${info.home_unit})` : '';
+      const needAmt = info ? Math.round(info.toBuy) : null;
+      const amountText =
+        info && !isNaN(needAmt) ? ` (Need: ${needAmt} ${info.home_unit})` : '';
       rec.btn.textContent = item.name + amountText;
     }
   });
