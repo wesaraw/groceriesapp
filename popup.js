@@ -1,5 +1,6 @@
 import { loadJSON } from './utils/dataLoader.js';
 import { calculatePurchaseNeeds } from './utils/purchaseCalculator.js';
+import { initUomTable, convert } from './utils/uomConverter.js';
 
 const YEARLY_NEEDS_PATH = 'Required for grocery app/yearly_needs_with_manual_flags.json';
 const STORE_SELECTION_PATH = 'Required for grocery app/store_selection_stopandshop.json';
@@ -7,18 +8,32 @@ const CONSUMPTION_PATH = 'Required for grocery app/monthly_consumption_table.jso
 const STOCK_PATH = 'Required for grocery app/current_stock_table.json';
 const EXPIRATION_PATH = 'Required for grocery app/expiration_times_full.json';
 
+async function loadStock() {
+  return new Promise(async resolve => {
+    chrome.storage.local.get('currentStock', async data => {
+      if (data.currentStock) {
+        resolve(data.currentStock);
+      } else {
+        const stock = await loadJSON(STOCK_PATH);
+        resolve(stock);
+      }
+    });
+  });
+}
+
 async function getData() {
   const [needs, selections, consumption, stock, expiration] = await Promise.all([
     loadJSON(YEARLY_NEEDS_PATH),
     loadJSON(STORE_SELECTION_PATH),
     loadJSON(CONSUMPTION_PATH),
-    loadJSON(STOCK_PATH),
+    loadStock(),
     loadJSON(EXPIRATION_PATH)
   ]);
   return { needs, selections, consumption, stock, expiration };
 }
 
 const finalMap = new Map();
+let needsData = [];
 
 function getFinal(itemName) {
   const key = `final_${encodeURIComponent(itemName)}`;
@@ -35,7 +50,9 @@ function getFinalProduct(itemName) {
 }
 
 async function init() {
+  await initUomTable();
   const { needs, selections, consumption, stock, expiration } = await getData();
+  needsData = needs;
   const purchaseInfo = calculatePurchaseNeeds(needs, consumption, stock, expiration);
   const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
   const itemsContainer = document.getElementById('items');
@@ -124,3 +141,63 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 });
+
+async function loadCommitData(itemName) {
+  const [store, product] = await Promise.all([
+    getFinal(itemName),
+    getFinalProduct(itemName)
+  ]);
+  return { store, product };
+}
+
+function getPackCount(product) {
+  const m = product?.name?.match(/(\d+)\s*(?:pack|ct|count)/i);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+async function saveStock(stock) {
+  return new Promise(resolve => {
+    chrome.storage.local.set({ currentStock: stock }, () => resolve());
+  });
+}
+
+async function commitSelections() {
+  const stock = await loadStock();
+  const stockMap = new Map(stock.map(i => [i.name, i]));
+  const commitItems = [];
+
+  for (const item of needsData) {
+    const { store, product } = await loadCommitData(item.name);
+    if (!product) continue;
+    const pack = getPackCount(product);
+
+    let amount = pack;
+    if (item.home_unit.toLowerCase() !== 'each') {
+      let ozQty = null;
+      if (product.convertedQty != null) {
+        ozQty = product.convertedQty * pack;
+      } else if (product.sizeQty != null && product.sizeUnit) {
+        ozQty = convert(product.sizeQty * pack, product.sizeUnit, 'oz');
+      }
+      if (ozQty != null) {
+        amount = convert(ozQty, 'oz', item.home_unit);
+      }
+    }
+
+    const entry = stockMap.get(item.name);
+    if (entry) {
+      entry.amount = (parseFloat(entry.amount) || 0) + amount;
+    } else {
+      stockMap.set(item.name, { name: item.name, amount, unit: item.home_unit });
+    }
+    commitItems.push({ item: item.name, store, product, amount, unit: item.home_unit });
+  }
+
+  await saveStock(Array.from(stockMap.values()));
+  chrome.storage.local.set({ lastCommitItems: commitItems });
+
+  const url = chrome.runtime.getURL('shoppingList.html');
+  chrome.windows.create({ url, type: 'popup', width: 400, height: 600 });
+}
+
+document.getElementById('commit').addEventListener('click', commitSelections);
