@@ -7,6 +7,7 @@ const STORE_SELECTION_PATH = 'Required for grocery app/store_selection_stopandsh
 const CONSUMPTION_PATH = 'Required for grocery app/monthly_consumption_table.json';
 const STOCK_PATH = 'Required for grocery app/current_stock_table.json';
 const EXPIRATION_PATH = 'Required for grocery app/expiration_times_full.json';
+const CONSUMED_PATH = 'consumedThisYear';
 
 async function loadStock() {
   return new Promise(async resolve => {
@@ -21,21 +22,40 @@ async function loadStock() {
   });
 }
 
+async function loadConsumed() {
+  return new Promise(async resolve => {
+    chrome.storage.local.get(CONSUMED_PATH, async data => {
+      if (data[CONSUMED_PATH]) {
+        resolve(data[CONSUMED_PATH]);
+      } else {
+        const needs = await loadJSON(YEARLY_NEEDS_PATH);
+        resolve(
+          needs.map(n => ({ name: n.name, amount: 0, unit: n.home_unit }))
+        );
+      }
+    });
+  });
+}
+
 async function getData() {
-  const [needs, selections, consumption, stock, expiration] = await Promise.all([
-    loadJSON(YEARLY_NEEDS_PATH),
-    loadJSON(STORE_SELECTION_PATH),
-    loadJSON(CONSUMPTION_PATH),
-    loadStock(),
-    loadJSON(EXPIRATION_PATH)
-  ]);
-  return { needs, selections, consumption, stock, expiration };
+  const [needs, selections, consumption, stock, expiration, consumed] =
+    await Promise.all([
+      loadJSON(YEARLY_NEEDS_PATH),
+      loadJSON(STORE_SELECTION_PATH),
+      loadJSON(CONSUMPTION_PATH),
+      loadStock(),
+      loadJSON(EXPIRATION_PATH),
+      loadConsumed()
+    ]);
+  return { needs, selections, consumption, stock, expiration, consumed };
 }
 
 const finalMap = new Map();
 let needsData = [];
 let consumptionData = [];
 let expirationData = [];
+let stockData = [];
+let consumedYearData = [];
 
 function getFinal(itemName) {
   const key = `final_${encodeURIComponent(itemName)}`;
@@ -53,11 +73,20 @@ function getFinalProduct(itemName) {
 
 async function init() {
   await initUomTable();
-  const { needs, selections, consumption, stock, expiration } = await getData();
+  const { needs, selections, consumption, stock, expiration, consumed } =
+    await getData();
   needsData = needs;
   consumptionData = consumption;
   expirationData = expiration;
-  const purchaseInfo = calculatePurchaseNeeds(needs, consumption, stock, expiration);
+  stockData = stock;
+  consumedYearData = consumed;
+  const purchaseInfo = calculatePurchaseNeeds(
+    needs,
+    consumption,
+    stock,
+    expiration,
+    consumed
+  );
   const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
   const itemsContainer = document.getElementById('items');
 
@@ -146,12 +175,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-async function refreshNeeds(stock) {
+async function refreshNeeds(stock = stockData, consumed = consumedYearData) {
+  stockData = stock;
   const purchaseInfo = calculatePurchaseNeeds(
     needsData,
     consumptionData,
     stock,
-    expirationData
+    expirationData,
+    consumed
   );
   const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
   needsData.forEach(item => {
@@ -167,7 +198,12 @@ async function refreshNeeds(stock) {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.currentStock) {
     const newStock = changes.currentStock.newValue || [];
-    refreshNeeds(newStock);
+    refreshNeeds(newStock, consumedYearData);
+  }
+  if (area === 'local' && changes[CONSUMED_PATH]) {
+    const newConsumed = changes[CONSUMED_PATH].newValue || [];
+    consumedYearData = newConsumed;
+    refreshNeeds(stockData, newConsumed);
   }
 });
 
@@ -239,3 +275,12 @@ function openInventory() {
 document
   .getElementById('editInventory')
   .addEventListener('click', openInventory);
+
+function openConsumption() {
+  const url = chrome.runtime.getURL('consumed.html');
+  chrome.windows.create({ url, type: 'popup', width: 400, height: 600 });
+}
+
+document
+  .getElementById('editConsumption')
+  .addEventListener('click', openConsumption);
