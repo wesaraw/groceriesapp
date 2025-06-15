@@ -34,6 +34,8 @@ async function getData() {
 
 const finalMap = new Map();
 let needsData = [];
+let consumptionData = [];
+let expirationData = [];
 
 function getFinal(itemName) {
   const key = `final_${encodeURIComponent(itemName)}`;
@@ -53,6 +55,8 @@ async function init() {
   await initUomTable();
   const { needs, selections, consumption, stock, expiration } = await getData();
   needsData = needs;
+  consumptionData = consumption;
+  expirationData = expiration;
   const purchaseInfo = calculatePurchaseNeeds(needs, consumption, stock, expiration);
   const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
   const itemsContainer = document.getElementById('items');
@@ -102,7 +106,7 @@ async function init() {
     });
     li.appendChild(finalSpan);
     li.appendChild(finalImg);
-    finalMap.set(item.name, { span: finalSpan, img: finalImg });
+    finalMap.set(item.name, { btn, span: finalSpan, img: finalImg });
     itemsContainer.appendChild(li);
   });
 }
@@ -139,6 +143,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         img.style.display = 'inline';
       }
     }
+  }
+});
+
+async function refreshNeeds(stock) {
+  const purchaseInfo = calculatePurchaseNeeds(
+    needsData,
+    consumptionData,
+    stock,
+    expirationData
+  );
+  const purchaseMap = new Map(purchaseInfo.map(p => [p.name, p]));
+  needsData.forEach(item => {
+    const rec = finalMap.get(item.name);
+    if (rec && rec.btn) {
+      const info = purchaseMap.get(item.name);
+      const amountText = info ? ` (Need: ${info.toBuy} ${info.home_unit})` : '';
+      rec.btn.textContent = item.name + amountText;
+    }
+  });
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.currentStock) {
+    const newStock = changes.currentStock.newValue || [];
+    refreshNeeds(newStock);
   }
 });
 
