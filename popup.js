@@ -201,3 +201,12 @@ async function commitSelections() {
 }
 
 document.getElementById('commit').addEventListener('click', commitSelections);
+
+function openInventory() {
+  const url = chrome.runtime.getURL('inventory.html');
+  chrome.windows.create({ url, type: 'popup', width: 400, height: 600 });
+}
+
+document
+  .getElementById('editInventory')
+  .addEventListener('click', openInventory);
