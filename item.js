@@ -2,6 +2,7 @@ import { loadJSON } from './utils/dataLoader.js';
 import { initUomTable } from './utils/uomConverter.js';
 
 const STORE_SELECTION_PATH = 'Required for grocery app/store_selection_stopandshop.json';
+const STORE_SELECTION_KEY = 'storeSelections';
 
 // Grey placeholder used until real product images load
 const PLACEHOLDER_IMG =
@@ -23,8 +24,21 @@ function setStorage(obj) {
   });
 }
 
+async function loadStoreSelections() {
+  return new Promise(async resolve => {
+    chrome.storage.local.get(STORE_SELECTION_KEY, async data => {
+      if (data[STORE_SELECTION_KEY]) {
+        resolve(data[STORE_SELECTION_KEY]);
+      } else {
+        const arr = await loadJSON(STORE_SELECTION_PATH);
+        resolve(arr);
+      }
+    });
+  });
+}
+
 async function getStoreEntries(itemName) {
-  const all = await loadJSON(STORE_SELECTION_PATH);
+  const all = await loadStoreSelections();
   return all.filter(e => e.name === itemName);
 }
 
