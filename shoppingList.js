@@ -47,7 +47,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const amt = it.amount != null ? `${it.amount.toFixed(2)} ${it.unit}` : '';
         span.textContent = `${it.item} - ${it.product?.name || ''} - ${pStr} - ${qStr} - ${uStr} - ${amt}`;
         li.appendChild(span);
-        if (it.store === 'Roche Bros' && it.product?.addToCartId) {
+        const storeName = (it.store || '').toLowerCase().replace(/\./g, '').trim();
+        if (
+          (storeName.startsWith('roche bros') || storeName.startsWith('roche brothers')) &&
+          it.product?.addToCartId
+        ) {
           const btn = document.createElement('button');
           btn.textContent = 'Add to Cart';
           btn.addEventListener('click', () => {

@@ -36,12 +36,9 @@ export function scrapeShaws() {
   const products = [];
   const tiles = document.querySelectorAll('product-item-al-v2');
   tiles.forEach(tile => {
-    const name =
-      tile.querySelector('[data-qa="prd-itm-pttl"] a')?.innerText?.trim() ||
-      tile.querySelector('[data-qa="prd-itm-pttl"]')?.innerText?.trim();
-    const linkRel = tile
-      .querySelector('[data-qa="prd-itm-pttl"] a')
-      ?.getAttribute('href');
+    const titleEl = tile.querySelector('[data-qa="prd-itm-pttl"]');
+    const name = titleEl?.innerText?.trim();
+    const linkRel = titleEl?.getAttribute('href');
     const link = linkRel ? new URL(linkRel, 'https://www.shaws.com').href : '';
     const priceText = tile.querySelector('[data-qa="prd-itm-prc"]')?.innerText?.trim();
     const sizeText = tile.querySelector('[data-qa="prd-itm-sqty"]')?.innerText?.trim();
