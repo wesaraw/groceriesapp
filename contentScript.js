@@ -48,6 +48,7 @@ function scrapeStopAndShop() {
 
     const perUnitText = tile.querySelector('.product-grid-cell_unit')?.innerText?.trim();
     const image = tile.querySelector('img')?.src || '';
+    const link = tile.querySelector('a[href*="/product/"]')?.href || '';
 
     let unitQty = null;
     let unitType = null;
@@ -94,7 +95,8 @@ function scrapeStopAndShop() {
         price: priceText,
         unitSize,
         pricePerUnit: perUnitText,
-        image
+        image,
+        link
       });
       products.push({
         name,
@@ -209,6 +211,7 @@ function scrapeWalmart() {
       }
     }
     const image = tile.querySelector('img[data-testid="productTileImage"]')?.src || '';
+    const link = tile.querySelector('a[href*="/ip/"]')?.href || '';
     if (name && price) {
       products.push({
         name,
@@ -368,7 +371,8 @@ function scrapeAmazon() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
@@ -461,7 +465,8 @@ function scrapeShaws() {
         unitType: null,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
@@ -508,6 +513,7 @@ function scrapeRocheBros() {
   tiles.forEach(tile => {
     const name = tile.querySelector('.cell-title-text')?.innerText?.trim();
     const image = tile.querySelector('.cell-image')?.getAttribute('data-src') || '';
+    const link = tile.querySelector('a[href]')?.href || '';
     const priceText = tile.querySelector('span[data-test="amount"] span')?.innerText?.trim();
     const perUnitText = tile.querySelector('span[data-test="per-unit-price"]')?.innerText?.trim();
     const sizeText = tile.querySelector('.cell-product-size')?.innerText?.trim();
@@ -564,7 +570,8 @@ function scrapeRocheBros() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
