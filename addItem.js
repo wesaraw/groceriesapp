@@ -14,7 +14,12 @@ const STORE_LINKS = {
   Walmart: name =>
     `https://www.walmart.com/search?q=${encodeURIComponent(
       name.replace(/ /g, '+')
-    )}&facet=fulfillment_method_in_store%3AIn-store%7C%7Cexclude_oos%3AShow+available+items+only`
+    )}&facet=fulfillment_method_in_store%3AIn-store%7C%7Cexclude_oos%3AShow+available+items+only`,
+  Amazon: name =>
+    `https://www.amazon.com/s?k=${name
+      .split(/\s+/)
+      .map(encodeURIComponent)
+      .join('+')}`
 };
 
 function loadArray(key, path) {
@@ -102,6 +107,15 @@ async function commit() {
       convertedQty: null,
       pricePerUnit: null,
       link: STORE_LINKS['Walmart'](name),
+      image: null
+    },
+    {
+      name,
+      store: 'Amazon',
+      price: null,
+      convertedQty: null,
+      pricePerUnit: null,
+      link: STORE_LINKS['Amazon'](name),
       image: null
     }
   );

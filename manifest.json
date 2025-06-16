@@ -10,7 +10,8 @@
   ],
   "host_permissions": [
     "https://stopandshop.com/*",
-    "https://www.walmart.com/*"
+    "https://www.walmart.com/*",
+    "https://www.amazon.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -22,7 +23,8 @@
     {
       "matches": [
         "https://stopandshop.com/*",
-        "https://www.walmart.com/*"
+        "https://www.walmart.com/*",
+        "https://www.amazon.com/*"
       ],
       "js": [
         "contentScript.js"
