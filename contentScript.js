@@ -308,6 +308,7 @@ function scrapeAmazon() {
     'div[data-asin][data-component-type="s-search-result"]'
   );
   tiles.forEach(tile => {
+    const link = tile.querySelector('a.a-link-normal.s-no-outline')?.href || '';
     const name = tile.querySelector('h2.a-size-base-plus span')?.innerText?.trim();
     const image = tile.querySelector('img.s-image')?.src || '';
     const priceText = tile
@@ -417,6 +418,7 @@ function scrapeShaws() {
   const products = [];
   const tiles = document.querySelectorAll('product-item-al-v2');
   tiles.forEach(tile => {
+    const link = tile.querySelector('[data-qa="prd-itm-pttl"] a')?.href || '';
     const name =
       tile.querySelector('[data-qa="prd-itm-pttl"] a')?.innerText?.trim() ||
       tile.querySelector('[data-qa="prd-itm-pttl"]')?.innerText?.trim();
