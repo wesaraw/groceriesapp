@@ -52,9 +52,6 @@ export function scrapeWalmart() {
     if (sizeMatch) {
       sizeQty = parseFloat(sizeMatch[1]);
       sizeUnit = sizeMatch[2].replace(/\s+/g, '');
-      if (packCount > 1) {
-        sizeQty = sizeQty / packCount;
-      }
       const factor = UNIT_FACTORS[sizeUnit.toLowerCase()];
       if (factor) {
         convertedQty = sizeQty * factor;
@@ -62,7 +59,8 @@ export function scrapeWalmart() {
         if (price) {
           const p = parseFloat(price.replace(/[^0-9.]/g, ''));
           if (!isNaN(p)) {
-            pricePerUnit = p / (convertedQty * packCount);
+            const totalConverted = convertedQty * packCount;
+            pricePerUnit = p / totalConverted;
           }
         }
       }
