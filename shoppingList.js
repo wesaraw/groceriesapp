@@ -9,6 +9,11 @@ function loadCommitItems() {
 const PLACEHOLDER_IMG =
   "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><rect width='100%' height='100%' fill='%23ccc'/></svg>";
 
+const STORE_LINKS = {
+  'Roche Bros': name =>
+    `https://shopping.rochebros.com/search?search_term=${name.replace(/ /g, '%20')}`
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   const container = document.getElementById('list');
   const items = await loadCommitItems();
@@ -42,7 +47,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         const amt = it.amount != null ? `${it.amount.toFixed(2)} ${it.unit}` : '';
         span.textContent = `${it.item} - ${it.product?.name || ''} - ${pStr} - ${qStr} - ${uStr} - ${amt}`;
         li.appendChild(span);
-        if (it.product && it.product.link) {
+        if (it.store === 'Roche Bros' && it.product?.addToCartId) {
+          const btn = document.createElement('button');
+          btn.textContent = 'Add to Cart';
+          btn.addEventListener('click', () => {
+            chrome.runtime.sendMessage(
+              {
+                type: 'openStoreTab',
+                url: STORE_LINKS['Roche Bros'](it.item),
+                item: it.item,
+                store: 'Roche Bros'
+              },
+              response => {
+                const tabId = response.tabId;
+                setTimeout(() => {
+                  chrome.tabs.sendMessage(tabId, {
+                    type: 'simulateClick',
+                    selector: `[data-test-id="${it.product.addToCartId}"]`
+                  });
+                }, 3000);
+              }
+            );
+          });
+          li.appendChild(btn);
+        } else if (it.product && it.product.link) {
           const btn = document.createElement('button');
           btn.textContent = 'View';
           btn.addEventListener('click', () => {
