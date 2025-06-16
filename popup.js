@@ -243,7 +243,13 @@ async function loadCommitData(itemName) {
 }
 
 function getPackCount(product) {
-  const m = product?.name?.match(/(\d+)\s*(?:pack|ct|count)/i);
+  let m = product?.name?.match(/(\d+)\s*(?:pack|ct|count)/i);
+  if (!m && product?.size) {
+    m = product.size.match(/pack\s*of\s*(\d+)/i);
+    if (!m) {
+      m = product.size.match(/(\d+)\s*(?:pack|ct|count)/i);
+    }
+  }
   return m ? parseInt(m[1], 10) : 1;
 }
 
