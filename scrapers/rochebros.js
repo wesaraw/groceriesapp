@@ -37,6 +37,7 @@ export function scrapeRocheBros() {
   const tiles = document.querySelectorAll('[data-test="product-cell"]');
   tiles.forEach(tile => {
     const name = tile.querySelector('.cell-title-text')?.innerText?.trim();
+    const link = tile.querySelector('a[href]')?.href || '';
     const priceText = tile.querySelector('[data-test="amount"] span')?.innerText?.trim();
     const sizeText = tile.querySelector('.cell-product-size')?.innerText?.trim();
     const unitText = tile.querySelector('[data-test="per-unit-price"]')?.innerText?.trim();
@@ -104,7 +105,8 @@ export function scrapeRocheBros() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });

@@ -82,6 +82,7 @@ export function scrapeWalmart() {
       }
     }
     const image = tile.querySelector('img[data-testid="productTileImage"]')?.src || '';
+    const link = tile.querySelector('a[href*="/ip/"]')?.href || '';
     let priceNumber = null;
     if (price) {
       const p = parseFloat(price.replace(/[^0-9.]/g, ''));
@@ -100,7 +101,8 @@ export function scrapeWalmart() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });

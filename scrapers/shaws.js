@@ -39,6 +39,7 @@ export function scrapeShaws() {
     const name =
       tile.querySelector('[data-qa="prd-itm-pttl"] a')?.innerText?.trim() ||
       tile.querySelector('[data-qa="prd-itm-pttl"]')?.innerText?.trim();
+    const link = tile.querySelector('[data-qa="prd-itm-pttl"] a')?.href || '';
     const priceText = tile.querySelector('[data-qa="prd-itm-prc"]')?.innerText?.trim();
     const sizeText = tile.querySelector('[data-qa="prd-itm-sqty"]')?.innerText?.trim();
     const image = tile.querySelector('img[data-qa="prd-itm-img"]')?.src || '';
@@ -84,7 +85,8 @@ export function scrapeShaws() {
         unitType: null,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });

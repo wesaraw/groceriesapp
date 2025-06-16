@@ -73,6 +73,7 @@ export function scrapeAmazon() {
     'div[data-asin][data-component-type="s-search-result"]'
   );
   tiles.forEach(tile => {
+    const link = tile.querySelector('a.a-link-normal.s-no-outline')?.href || '';
     const name = tile.querySelector('h2.a-size-base-plus span')?.innerText?.trim();
     const image = tile.querySelector('img.s-image')?.src || '';
     const priceText = tile.querySelector('span.a-price span.a-offscreen')?.innerText?.trim();
@@ -135,7 +136,8 @@ export function scrapeAmazon() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
