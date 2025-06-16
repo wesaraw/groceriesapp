@@ -1,6 +1,7 @@
 export function scrapeRocheBros() {
   const UNIT_FACTORS = {
     oz: 1,
+    floz: 1,
     lb: 16,
     g: 0.035274,
     kg: 35.274,
@@ -60,10 +61,11 @@ export function scrapeRocheBros() {
     let sizeQty = null;
     let sizeUnit = null;
     if (sizeText) {
-      const m = sizeText.match(/([\d.]+)\s*([a-zA-Z]+)/);
+      const m = sizeText.match(/([\d.]+)\s*(fl\s*oz|oz|lb|g|kg|ml|l|gal|qt|pt|cup|tbsp|tsp|ea|ct|pkg|box|can|bag|bottle|stick|roll|bar|pouch|jar|packet|sleeve|slice|piece|tube|tray|unit)/i);
       if (m) {
         sizeQty = parseFloat(m[1]);
-        sizeUnit = m[2];
+        sizeUnit = m[2].toLowerCase().replace(/\s+/g, '');
+        if (sizeUnit === 'floz') sizeUnit = 'oz';
       }
     }
 
@@ -71,11 +73,11 @@ export function scrapeRocheBros() {
     let unitType = null;
     let pricePerUnit = null;
     if (unitText) {
-      const m = unitText.match(/\$([\d.]+)\s*\/\s*(\w+)/);
+      const m = unitText.match(/\$([\d.]+)\s*\/\s*(fl\s*oz|oz|lb|g|kg|ml|l|gal|qt|pt|cup|tbsp|tsp|ea|ct|pkg|box|can|bag|bottle|stick|roll|bar|pouch|jar|packet|sleeve|slice|piece|tube|tray|unit)/i);
       if (m) {
         pricePerUnit = parseFloat(m[1]);
-        unitType = m[2];
-        const factor = UNIT_FACTORS[unitType.toLowerCase()];
+        unitType = m[2].toLowerCase().replace(/\s+/g, '');
+        const factor = UNIT_FACTORS[unitType];
         if (factor) {
           pricePerUnit = pricePerUnit / factor;
           unitType = 'oz';
