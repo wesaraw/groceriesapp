@@ -21,7 +21,9 @@ const STORE_LINKS = {
       .map(encodeURIComponent)
       .join('+')}`,
   Shaws: name =>
-    `https://www.shaws.com/shop/search-results.html?q=${name.replace(/ /g, '%20')}`
+    `https://www.shaws.com/shop/search-results.html?q=${name.replace(/ /g, '%20')}`,
+  'Roche Bros': name =>
+    `https://shopping.rochebros.com/search?search_term=${name.replace(/ /g, '%20')}`
 };
 
 function loadArray(key, path) {
@@ -127,6 +129,15 @@ async function commit() {
       convertedQty: null,
       pricePerUnit: null,
       link: STORE_LINKS['Shaws'](name),
+      image: null
+    },
+    {
+      name,
+      store: 'Roche Bros',
+      price: null,
+      convertedQty: null,
+      pricePerUnit: null,
+      link: STORE_LINKS['Roche Bros'](name),
       image: null
     }
   );
