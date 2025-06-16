@@ -1,6 +1,7 @@
 export function scrapeStopAndShop() {
   const UNIT_FACTORS = {
     oz: 1,
+    floz: 1,
     lb: 16,
     g: 0.035274,
     kg: 35.274,
@@ -51,10 +52,11 @@ export function scrapeStopAndShop() {
     let unitType = null;
     if (perUnitText) {
       const clean = perUnitText.replace(/[^0-9./a-zA-Z]/g, '');
-      const match = clean.match(/([\d.]+)\/([a-zA-Z]+)/);
+      const match = clean.match(/([\d.]+)\/(fl\s*oz|oz|lb|g|kg|ml|l|gal|qt|pt|cup|tbsp|tsp|ea|ct|pkg|box|can|bag|bottle|stick|roll|bar|pouch|jar|packet|sleeve|slice|piece|tube|tray|unit)/i);
       if (match) {
         unitQty = parseFloat(match[1]);
-        unitType = match[2];
+        unitType = match[2].toLowerCase().replace(/\s+/g, '');
+        if (unitType === 'floz') unitType = 'oz';
       }
     }
 
@@ -67,10 +69,11 @@ export function scrapeStopAndShop() {
     let sizeQty = null;
     let sizeUnit = null;
     if (unitSize) {
-      const m = unitSize.match(/([\d.]+)\s*([a-zA-Z]+)/);
+      const m = unitSize.match(/([\d.]+)\s*(fl\s*oz|oz|lb|g|kg|ml|l|gal|qt|pt|cup|tbsp|tsp|ea|ct|pkg|box|can|bag|bottle|stick|roll|bar|pouch|jar|packet|sleeve|slice|piece|tube|tray|unit)/i);
       if (m) {
         sizeQty = parseFloat(m[1]);
-        sizeUnit = m[2];
+        sizeUnit = m[2].toLowerCase().replace(/\s+/g, '');
+        if (sizeUnit === 'floz') sizeUnit = 'oz';
       }
     }
 
