@@ -52,6 +52,15 @@ export function scrapeAmazon() {
     let mPack = name?.match(/(\d+)\s*(?:pack|ct|count)/i);
     if (!mPack && countText) {
       mPack = countText.match(/pack\s*of\s*(\d+)/i);
+      if (!mPack) {
+        mPack = countText.match(/(\d+)\s*(?:pack|ct|count)/i);
+      }
+    }
+    if (!mPack && unitText) {
+      mPack = unitText.match(/pack\s*of\s*(\d+)/i);
+      if (!mPack) {
+        mPack = unitText.match(/(\d+)\s*(?:pack|ct|count)/i);
+      }
     }
     if (mPack) {
       packCount = parseInt(mPack[1], 10);

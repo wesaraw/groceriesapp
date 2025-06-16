@@ -250,6 +250,12 @@ function getPackCount(product) {
       m = product.size.match(/(\d+)\s*(?:pack|ct|count)/i);
     }
   }
+  if (!m && product?.unit) {
+    m = product.unit.match(/pack\s*of\s*(\d+)/i);
+    if (!m) {
+      m = product.unit.match(/(\d+)\s*(?:pack|ct|count)/i);
+    }
+  }
   return m ? parseInt(m[1], 10) : 1;
 }
 
