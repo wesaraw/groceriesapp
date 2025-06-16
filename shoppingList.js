@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setTimeout(() => {
                   chrome.tabs.sendMessage(tabId, {
                     type: 'simulateClick',
-                    selector: `[data-test-id="${it.product.addToCartId}"]`
+                    selector: `#${it.product.addToCartId}`
                   });
                 }, 3000);
               }

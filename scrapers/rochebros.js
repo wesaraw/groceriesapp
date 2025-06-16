@@ -38,9 +38,9 @@ export function scrapeRocheBros() {
   tiles.forEach(tile => {
     const name = tile.querySelector('.cell-title-text')?.innerText?.trim();
     const link = tile.querySelector('a[href]')?.href || '';
-    const addToCartId = tile
-      .querySelector('button[data-test-id^="add-to-cart-button"]')
-      ?.getAttribute('data-test-id') || '';
+    const addBtn = tile.querySelector('button[data-test="add-to-cart-button"]') ||
+      tile.querySelector('button[data-test-id^="add-to-cart-button"]');
+    const addToCartId = addBtn?.id || addBtn?.getAttribute('data-test-id') || '';
     const priceText = tile.querySelector('[data-test="amount"] span')?.innerText?.trim();
     const sizeText = tile.querySelector('.cell-product-size')?.innerText?.trim();
     const unitText = tile.querySelector('[data-test="per-unit-price"]')?.innerText?.trim();

@@ -516,9 +516,9 @@ function scrapeRocheBros() {
     const name = tile.querySelector('.cell-title-text')?.innerText?.trim();
     const image = tile.querySelector('.cell-image')?.getAttribute('data-src') || '';
     const link = tile.querySelector('a[href]')?.href || '';
-    const addToCartId = tile
-      .querySelector('button[data-test-id^="add-to-cart-button"]')
-      ?.getAttribute('data-test-id') || '';
+    const addBtn = tile.querySelector('button[data-test="add-to-cart-button"]') ||
+      tile.querySelector('button[data-test-id^="add-to-cart-button"]');
+    const addToCartId = addBtn?.id || addBtn?.getAttribute('data-test-id') || '';
     const priceText = tile.querySelector('span[data-test="amount"] span')?.innerText?.trim();
     const perUnitText = tile.querySelector('span[data-test="per-unit-price"]')?.innerText?.trim();
     const sizeText = tile.querySelector('.cell-product-size')?.innerText?.trim();
