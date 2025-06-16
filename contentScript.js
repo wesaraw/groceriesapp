@@ -174,9 +174,11 @@ function scrapeWalmart() {
     if (sizeMatch) {
       sizeQty = parseFloat(sizeMatch[1]);
       sizeUnit = sizeMatch[2].replace(/\s+/g, '');
-      if (packCount > 1) {
-        sizeQty = sizeQty / packCount;
-      }
+      // Removed adjustment that divided size by packCount so that the
+      // full item weight is used when computing price per unit.
+      // if (packCount > 1) {
+      //   sizeQty = sizeQty / packCount;
+      // }
       const factor = UNIT_FACTORS[sizeUnit.toLowerCase()];
       if (factor) {
         convertedQty = sizeQty * factor;
