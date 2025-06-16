@@ -12,7 +12,8 @@
     "https://stopandshop.com/*",
     "https://www.walmart.com/*",
     "https://www.amazon.com/*",
-    "https://www.shaws.com/*"
+    "https://www.shaws.com/*",
+    "https://shopping.rochebros.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -26,7 +27,8 @@
         "https://stopandshop.com/*",
         "https://www.walmart.com/*",
         "https://www.amazon.com/*",
-        "https://www.shaws.com/*"
+        "https://www.shaws.com/*",
+        "https://shopping.rochebros.com/*"
       ],
       "js": [
         "contentScript.js"
