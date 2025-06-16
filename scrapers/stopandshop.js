@@ -45,6 +45,7 @@ export function scrapeStopAndShop() {
     const perUnitText = tile.querySelector('.product-grid-cell_unit')?.innerText?.trim();
 
     const image = tile.querySelector('img')?.src || '';
+    const link = tile.querySelector('a[href*="/product/"]')?.href || '';
 
     let unitQty = null;
     let unitType = null;
@@ -98,7 +99,8 @@ export function scrapeStopAndShop() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
