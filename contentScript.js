@@ -268,7 +268,7 @@ function scrapeAmazon() {
     let unit = null;
     for (const field of fields) {
       if (!field) continue;
-      const m = field.match(/([\d.]+)\s*(oz|ounce|fluid ounce|fl oz|g|gram|kg|ml|l)/i);
+      const m = field.match(/([\d.]+)[\s-]*(oz|ounce|fluid ounce|fl oz|g|gram|kg|ml|l)/i);
       if (m) {
         unitSize = parseFloat(m[1]);
         unit = m[2].toLowerCase();
@@ -340,8 +340,14 @@ function scrapeAmazon() {
       convertedQty = sizeQty * UNIT_FACTORS[sizeUnit];
       if (priceNumber != null && totalQty != null) {
         const totalConverted = totalQty * UNIT_FACTORS[sizeUnit];
-        pricePerUnit = priceNumber / totalConverted;
-        unitType = 'oz';
+        if (
+          pricePerUnit == null ||
+          /count/i.test(unitText) ||
+          (unitType && /count/i.test(unitType))
+        ) {
+          pricePerUnit = priceNumber / totalConverted;
+          unitType = 'oz';
+        }
       }
     }
 
