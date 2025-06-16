@@ -34,18 +34,37 @@ export function scrapeAmazon() {
   };
 
 
-  function parseUnitInfo(text) {
-    if (!text) return { unitSize: null, packCount: 1, unit: null };
-    const sizeMatch = text.match(/([\d.]+)\s*(oz|ounce|fluid ounce|fl oz|g|gram|kg|ml|l)/i);
-    const packMatch = text.match(/pack\s*of\s*(\d+)/i);
-    const unitSize = sizeMatch ? parseFloat(sizeMatch[1]) : null;
-    let unit = sizeMatch ? sizeMatch[2].toLowerCase() : null;
+  function parseUnitInfo(name, unitText, sizeText) {
+    const fields = [unitText, sizeText, name];
+    let unitSize = null;
+    let unit = null;
+    for (const field of fields) {
+      if (!field) continue;
+      const m = field.match(/([\d.]+)\s*(oz|ounce|fluid ounce|fl oz|g|gram|kg|ml|l)/i);
+      if (m) {
+        unitSize = parseFloat(m[1]);
+        unit = m[2].toLowerCase();
+        break;
+      }
+    }
     if (unit) {
       unit = unit.replace(/\s+/g, '');
-      if (unit === 'ounce' || unit === 'floz' || unit === 'fluidounce' || unit === 'flounce') unit = 'oz';
+      if (unit === 'ounce' || unit === 'ounces' || unit === 'floz' || unit === 'fluidounce' || unit === 'flounce') unit = 'oz';
       else if (unit === 'gram') unit = 'g';
     }
-    const packCount = packMatch ? parseInt(packMatch[1], 10) : 1;
+
+    const packFields = [name, unitText, sizeText];
+    let packCount = 1;
+    for (const field of packFields) {
+      if (!field) continue;
+      let m = field.match(/pack\s*of\s*(\d+)/i);
+      if (!m) m = field.match(/(\d+)\s*[xX]/);
+      if (!m) m = field.match(/(\d+)\s*(?:pack|ct|count)/i);
+      if (m) {
+        packCount = parseInt(m[1], 10);
+        break;
+      }
+    }
     return { unitSize, unit, packCount };
   }
 
@@ -64,7 +83,7 @@ export function scrapeAmazon() {
       .querySelector('span.a-size-base.a-color-base')
       ?.innerText?.trim();
 
-    const unitInfo = parseUnitInfo(countText);
+    const unitInfo = parseUnitInfo(name, unitText, countText);
     const packCount = unitInfo.packCount;
 
     let priceNumber = null;
