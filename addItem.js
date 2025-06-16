@@ -19,7 +19,9 @@ const STORE_LINKS = {
     `https://www.amazon.com/s?k=${name
       .split(/\s+/)
       .map(encodeURIComponent)
-      .join('+')}`
+      .join('+')}`,
+  Shaws: name =>
+    `https://www.shaws.com/shop/search-results.html?q=${name.replace(/ /g, '%20')}`
 };
 
 function loadArray(key, path) {
@@ -116,6 +118,15 @@ async function commit() {
       convertedQty: null,
       pricePerUnit: null,
       link: STORE_LINKS['Amazon'](name),
+      image: null
+    },
+    {
+      name,
+      store: 'Shaws',
+      price: null,
+      convertedQty: null,
+      pricePerUnit: null,
+      link: STORE_LINKS['Shaws'](name),
       image: null
     }
   );
