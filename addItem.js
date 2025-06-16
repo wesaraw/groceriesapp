@@ -23,7 +23,9 @@ const STORE_LINKS = {
   Shaws: name =>
     `https://www.shaws.com/shop/search-results.html?q=${name.replace(/ /g, '%20')}`,
   'Roche Bros': name =>
-    `https://shopping.rochebros.com/search?search_term=${name.replace(/ /g, '%20')}`
+    `https://shopping.rochebros.com/search?search_term=${name.replace(/ /g, '%20')}`,
+  Hannaford: name =>
+    `https://www.hannaford.com/search/product?form_state=searchForm&keyword=${name.replace(/ /g, '+')}&ieDummyTextField=&productTypeId=P`
 };
 
 function loadArray(key, path) {
@@ -138,6 +140,15 @@ async function commit() {
       convertedQty: null,
       pricePerUnit: null,
       link: STORE_LINKS['Roche Bros'](name),
+      image: null
+    },
+    {
+      name,
+      store: 'Hannaford',
+      price: null,
+      convertedQty: null,
+      pricePerUnit: null,
+      link: STORE_LINKS['Hannaford'](name),
       image: null
     }
   );
