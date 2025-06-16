@@ -108,7 +108,8 @@ function scrapeStopAndShop() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
@@ -221,7 +222,8 @@ function scrapeWalmart() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });
@@ -607,6 +609,10 @@ function scrapeHannaford() {
   const products = [];
   const tiles = document.querySelectorAll('div.catalog-product');
   tiles.forEach(tile => {
+    const linkRel = tile.getAttribute('href') || tile.getAttribute('data-url');
+    const link = linkRel
+      ? new URL(linkRel, 'https://www.hannaford.com').href
+      : '';
     const name = tile.querySelector('.productName .real-product-name')?.innerText?.trim();
     const priceText = tile.querySelector('.priceCell .item-unit-price')?.innerText?.trim();
     const priceHidden = tile.querySelector('.priceCell .item-price')?.value;
@@ -669,7 +675,8 @@ function scrapeHannaford() {
         unitType,
         convertedQty,
         pricePerUnit,
-        image
+        image,
+        link
       });
     }
   });

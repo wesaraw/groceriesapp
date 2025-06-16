@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const amt = it.amount != null ? `${it.amount.toFixed(2)} ${it.unit}` : '';
         span.textContent = `${it.item} - ${it.product?.name || ''} - ${pStr} - ${qStr} - ${uStr} - ${amt}`;
         li.appendChild(span);
+        if (it.product && it.product.link) {
+          const btn = document.createElement('button');
+          btn.textContent = 'View';
+          btn.addEventListener('click', () => {
+            chrome.windows.create({ url: it.product.link, type: 'popup', width: 800, height: 800 });
+          });
+          li.appendChild(btn);
+        }
         ul.appendChild(li);
       });
       container.appendChild(ul);
