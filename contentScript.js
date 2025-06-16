@@ -261,40 +261,20 @@ function scrapeAmazon() {
     unit: 1
   };
 
-  function getPackCount(name, unitText, sizeText) {
-    const fields = [name, unitText, sizeText];
-    for (const field of fields) {
-      if (!field) continue;
-      let m = field.match(/Pack\s*of\s*(\d+)/i);
-      if (!m) m = field.match(/(\d+)\s*[xX]/);
-      if (!m) m = field.match(/(\d+)\s*(?:pack|ct|count)/i);
-      if (m) return parseInt(m[1], 10);
-    }
-    return 1;
-  }
 
-  function getUnitSize(name, unitText, sizeText) {
-    const fields = [unitText, sizeText, name];
-    for (const field of fields) {
-      if (!field) continue;
-      const m = field.match(/(\d+(?:\.\d+)?)\s*(fl\s*oz|oz|ounce|ounces|lb|lbs?|pound|pounds|g|kg|ml|l|ct|count|ea)/i);
-      if (m) {
-        let qty = parseFloat(m[1]);
-        let unit = m[2].toLowerCase().replace(/\s+/g, '');
-        if (unit === 'ounce' || unit === 'ounces') unit = 'oz';
-        else if (unit === 'floz') unit = 'oz';
-        else if (unit === 'pound' || unit === 'pounds' || unit === 'lb' || unit === 'lbs') unit = 'lb';
-        else if (unit === 'count') unit = 'ct';
-        else if (unit === 'each') unit = 'ea';
-        return { qty, unit };
-      }
+  function parseUnitInfo(text) {
+    if (!text) return { unitSize: null, packCount: 1, unit: null };
+    const sizeMatch = text.match(/([\d.]+)\s*(oz|ounce|fluid ounce|fl oz|g|gram|kg|ml|l)/i);
+    const packMatch = text.match(/pack\s*of\s*(\d+)/i);
+    const unitSize = sizeMatch ? parseFloat(sizeMatch[1]) : null;
+    let unit = sizeMatch ? sizeMatch[2].toLowerCase() : null;
+    if (unit) {
+      unit = unit.replace(/\s+/g, '');
+      if (unit === 'ounce' || unit === 'floz' || unit === 'fluidounce' || unit === 'flounce') unit = 'oz';
+      else if (unit === 'gram') unit = 'g';
     }
-    return { qty: null, unit: null };
-  }
-
-  function getTotalQuantity(pack, qty) {
-    if (qty == null) return null;
-    return pack * qty;
+    const packCount = packMatch ? parseInt(packMatch[1], 10) : 1;
+    return { unitSize, unit, packCount };
   }
 
   const products = [];
@@ -311,9 +291,10 @@ function scrapeAmazon() {
         'span.a-size-base.a-color-secondary span.a-price.a-text-price span.a-offscreen'
       )?.innerText?.trim();
     const countText = tile
-      .querySelector('span.a-size-base.a-color-base.s-background-color-platinum')?.innerText?.trim();
+      .querySelector('span.a-size-base.a-color-base')?.innerText?.trim();
 
-    const packCount = getPackCount(name, unitText, countText);
+    const unitInfo = parseUnitInfo(countText);
+    const packCount = unitInfo.packCount;
 
     let priceNumber = null;
     if (priceText) {
@@ -331,15 +312,12 @@ function scrapeAmazon() {
       }
     }
 
-    let sizeQty = null;
-    let sizeUnit = null;
-    const sizeInfo = getUnitSize(name, unitText, countText);
-    sizeQty = sizeInfo.qty;
-    sizeUnit = sizeInfo.unit;
+    let sizeQty = unitInfo.unitSize;
+    let sizeUnit = unitInfo.unit;
 
     let convertedQty = null;
     if (sizeQty != null && sizeUnit && UNIT_FACTORS[sizeUnit]) {
-      const totalQty = getTotalQuantity(packCount, sizeQty);
+      const totalQty = sizeQty * packCount;
       convertedQty = sizeQty * UNIT_FACTORS[sizeUnit];
       if (priceNumber != null && totalQty != null) {
         const totalConverted = totalQty * UNIT_FACTORS[sizeUnit];
