@@ -141,5 +141,12 @@ export function scrapeAmazon() {
       });
     }
   });
+
+  products.sort((a, b) => {
+    const aPrice = a.pricePerUnit ?? Infinity;
+    const bPrice = b.pricePerUnit ?? Infinity;
+    return aPrice - bPrice;
+  });
+
   return products;
 }
