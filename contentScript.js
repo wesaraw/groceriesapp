@@ -418,7 +418,10 @@ function scrapeShaws() {
   const products = [];
   const tiles = document.querySelectorAll('product-item-al-v2');
   tiles.forEach(tile => {
-    const link = tile.querySelector('[data-qa="prd-itm-pttl"] a')?.href || '';
+    const linkRel = tile
+      .querySelector('[data-qa="prd-itm-pttl"] a')
+      ?.getAttribute('href');
+    const link = linkRel ? new URL(linkRel, 'https://www.shaws.com').href : '';
     const name =
       tile.querySelector('[data-qa="prd-itm-pttl"] a')?.innerText?.trim() ||
       tile.querySelector('[data-qa="prd-itm-pttl"]')?.innerText?.trim();
@@ -516,6 +519,9 @@ function scrapeRocheBros() {
     const name = tile.querySelector('.cell-title-text')?.innerText?.trim();
     const image = tile.querySelector('.cell-image')?.getAttribute('data-src') || '';
     const link = tile.querySelector('a[href]')?.href || '';
+    const addToCartId = tile
+      .querySelector('button[data-test-id^="add-to-cart-button"]')
+      ?.getAttribute('data-test-id') || '';
     const priceText = tile.querySelector('span[data-test="amount"] span')?.innerText?.trim();
     const perUnitText = tile.querySelector('span[data-test="per-unit-price"]')?.innerText?.trim();
     const sizeText = tile.querySelector('.cell-product-size')?.innerText?.trim();
@@ -573,7 +579,8 @@ function scrapeRocheBros() {
         convertedQty,
         pricePerUnit,
         image,
-        link
+        link,
+        addToCartId
       });
     }
   });
@@ -720,5 +727,8 @@ setTimeout(runScrape, 1000);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'triggerScrape') {
     runScrape();
+  } else if (message.type === 'simulateClick' && message.selector) {
+    const el = document.querySelector(message.selector);
+    if (el) el.click();
   }
 });
