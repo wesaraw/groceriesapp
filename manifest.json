@@ -13,7 +13,8 @@
     "https://www.walmart.com/*",
     "https://www.amazon.com/*",
     "https://www.shaws.com/*",
-    "https://shopping.rochebros.com/*"
+    "https://shopping.rochebros.com/*",
+    "https://www.hannaford.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -28,7 +29,8 @@
         "https://www.walmart.com/*",
         "https://www.amazon.com/*",
         "https://www.shaws.com/*",
-        "https://shopping.rochebros.com/*"
+        "https://shopping.rochebros.com/*",
+        "https://www.hannaford.com/*"
       ],
       "js": [
         "contentScript.js"
